@@ -1,10 +1,22 @@
 import express from "express";
+import cors from "cors";
 import userRouter from "./routers/user.routers.js";
 import authRouter from "./routers/auth.routers.js";
 import postRouter from "./routers/post.routers.js";
 import commentRouter from "./routers/comment.routers.js";
 
+
+
 const app = express();
+
+console.log("CORS ORIGIN:", process.env.CORS_ORIGIN);
+
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN,
+  credentials: true,
+  methods: [ "GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}))
 
 // Middleware
 app.use(express.json());
@@ -21,6 +33,7 @@ app.use("/api/v1/comments", commentRouter);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+
 });
 
 export default app;
