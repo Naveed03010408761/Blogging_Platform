@@ -1,7 +1,23 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
+ import axios from "axios";
 const Navbar = () => {
+ 
+
+const handleLogout = async () => {
+  try {
+    await axios.post(
+      "/api/v1/auth/logout", 
+      {}, 
+      { withCredentials: true } 
+    );
+
+    window.location.href = "/login";
+  } catch (error) {
+    console.error("Logout failed", error);
+  }
+};
+
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -38,11 +54,14 @@ const Navbar = () => {
     <i className="fa fa-search absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
   </div>
   
-  <Link to="/register">
+  <Link to="/login">
     <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-      Sign Up
+      Sign in
     </button>
   </Link>
+  <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
+  Logout
+</button>
 </div>
 
       </div>

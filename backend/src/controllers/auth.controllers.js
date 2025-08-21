@@ -93,27 +93,49 @@ const loginUser = asyncHandler(async (req, res, next) => {
     );
 });
 
-const logoutUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(
-    req.user._id,
-    { refreshToken: null },
-    { new: true },
-  );
+// const logoutUser = asyncHandler(async (req, res, next) => {
+//   const user = await User.findByIdAndUpdate(
+//     req.user._id,
+//     { refreshToken: null },
+//     { new: true },
+//   );
 
-  if (!user) {
-    throw new apiError(404, "User not found.");
+//   if (!user) {
+//     throw new apiError(404, "User not found.");
+//   }
+
+//   const options = {
+//     httpOnly: true,
+//     secure: true,
+//   };
+
+//   res
+//     .status(200)
+//     .clearCookie("accessToken", options)
+//     .clearCookie("refreshToken", options)
+//     .json(new apiResponse(200, "User logged out successfully."));
+// });
+
+const logoutUser = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
+  await User.findByIdAndUpdate(
+    req.user._id,
+    { refreshToken: null },
+    { new: true }
+  );
 
-  res
-    .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
-    .json(new apiResponse(200, "User logged out successfully."));
+  // Clear cookies
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+
+  res.status(200).json({ message: "Logged out successfully" });
 });
 
+
 export { registerUser, loginUser, logoutUser };
+
+
+

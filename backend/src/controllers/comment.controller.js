@@ -1,16 +1,16 @@
-import Comment from "../models/comment.models.js";
-import apiError from "../ultils/apiError.js";
-import apiResponse from "../ultils/apiResponse.js";
-import asyncHandler from "../ultils/asyncHandler.js";
+import Comment from '../models/comment.models.js';
+import apiError from '../ultils/apiError.js';
+import apiResponse from '../ultils/apiResponse.js';
+import asyncHandler from '../ultils/asyncHandler.js';
 
 const makeComment = asyncHandler(async (req, res) => {
-  const { content, postId } = req.body;
+  const { content, postId } = req.params;
 
   if (!content) {
-    throw new apiError(400, "Content is required.");
+    throw new apiError(400, 'Content is required.');
   }
   if (!postId) {
-    throw new apiError(400, "Post ID is required.");
+    throw new apiError(400, 'Post ID is required.');
   }
 
   const comment = await Comment.create({
@@ -21,15 +21,15 @@ const makeComment = asyncHandler(async (req, res) => {
 
   res
     .status(201)
-    .json(new apiResponse(201, "Comment created successfully", comment));
+    .json(new apiResponse(201, 'Comment created successfully', comment));
 });
 
 const updateComment = asyncHandler(async (req, res) => {
   const { content } = req.body;
-  const { commentId } = req.params; 
+  const { commentId } = req.params;
 
   if (!content) {
-    throw new apiError(400, "Content is required.");
+    throw new apiError(400, 'Content is required.');
   }
 
   const comment = await Comment.findByIdAndUpdate(
@@ -39,56 +39,57 @@ const updateComment = asyncHandler(async (req, res) => {
   );
 
   if (!comment) {
-    throw new apiError(404, "Comment not found.");
+    throw new apiError(404, 'Comment not found.');
   }
 
   return res
     .status(200)
-    .json(new apiResponse(200, "Comment updated successfully.", comment));
+    .json(new apiResponse(200, 'Comment updated successfully.', comment));
 });
 
 const deleteComment = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
 
-  const comment = await Comment.findByIdAndDelete(id);
+  const comment = await Comment.findByIdAndDelete(commentId);
 
   if (!comment) {
-    throw new apiError(404, "Comment not found.");
+    throw new apiError(404, 'Comment not found.');
   }
 
   return res
     .status(200)
-    .json(new apiResponse(200, "Comment deleted successfully.", comment));
+    .json(new apiResponse(200, 'Comment deleted successfully.', comment));
 });
 
 const getAllComments = asyncHandler(async (req, res) => {
-  const comments = await Comment.find(); 
+  const comments = await Comment.find();
 
   if (!comments || comments.length === 0) {
-    throw new apiError(404, "No comments found.");
+    throw new apiError(404, 'No comments found.');
   }
 
   return res
     .status(200)
-    .json(new apiResponse(200, "Comments fetched successfully.", comments));
+    .json(new apiResponse(200, 'Comments fetched successfully.', comments));
 });
 
-const getCommentByPostId = asyncHandler(async(req,res)=>{
-  const {postId} = req.params;
-  const comments = await Comment.find({post: postId});
+const getCommentByPostId = asyncHandler(async (req, res) => {
+  const { postId } = req.params;
+  const comments = await Comment.find({ post: postId });
 
-   if (!comments || comments.length === 0) {
-    throw new apiError(404, "No comments found for this post.");
+  if (!comments || comments.length === 0) {
+    throw new apiError(404, 'No comments found for this post.');
   }
 
   return res
-  .status(200)
-  .json( new apiResponse(200, "comments fetched successfully",comments));
-})
+    .status(200)
+    .json(new apiResponse(200, 'comments fetched successfully', comments));
+});
 
-
-
-
-export {makeComment, updateComment, deleteComment, getAllComments, getCommentByPostId};
-
-
+export {
+  makeComment,
+  updateComment,
+  deleteComment,
+  getAllComments,
+  getCommentByPostId,
+};

@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -27,7 +29,7 @@ const Login = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/v1/auth/login",
+        "/api/v1/auth/login",
         formData
       );
 
@@ -37,6 +39,8 @@ const Login = () => {
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
       }
+
+      navigate("/dashboard");
     } catch (error) {
       console.error(error);
       alert(error.response?.data?.message || "Login failed!");
@@ -85,3 +89,6 @@ const Login = () => {
 };
 
 export default Login;
+
+
+
