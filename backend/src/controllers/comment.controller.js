@@ -4,7 +4,8 @@ import apiResponse from '../ultils/apiResponse.js';
 import asyncHandler from '../ultils/asyncHandler.js';
 
 const makeComment = asyncHandler(async (req, res) => {
-  const { content, postId } = req.params;
+  const { postId } = req.params;
+  const { content } = req.body;
 
   if (!content) {
     throw new apiError(400, 'Content is required.');
@@ -14,14 +15,19 @@ const makeComment = asyncHandler(async (req, res) => {
   }
 
   const comment = await Comment.create({
-    user: req.user._id,
+    author: req.user._id,
     post: postId,
     content,
   });
+  const populatedComment = await Comment.findById(comment._id)
+    .populate('author', 'userName email')
+    .populate('post', 'title');
 
   res
     .status(201)
-    .json(new apiResponse(201, 'Comment created successfully', comment));
+    .json(
+      new apiResponse(201, 'Comment created successfully', populatedComment)
+    );
 });
 
 const updateComment = asyncHandler(async (req, res) => {
@@ -36,7 +42,7 @@ const updateComment = asyncHandler(async (req, res) => {
     commentId,
     { content },
     { new: true } // return updated doc
-  );
+  ).populate('author', 'userName email');
 
   if (!comment) {
     throw new apiError(404, 'Comment not found.');
@@ -62,7 +68,9 @@ const deleteComment = asyncHandler(async (req, res) => {
 });
 
 const getAllComments = asyncHandler(async (req, res) => {
-  const comments = await Comment.find();
+  const comments = await Comment.find()
+    .populate('author', 'userName email')
+    .populate('post', 'title');
 
   if (!comments || comments.length === 0) {
     throw new apiError(404, 'No comments found.');
@@ -75,15 +83,16 @@ const getAllComments = asyncHandler(async (req, res) => {
 
 const getCommentByPostId = asyncHandler(async (req, res) => {
   const { postId } = req.params;
-  const comments = await Comment.find({ post: postId });
+  const comments = await Comment.find({ post: postId })
+    .populate('author', 'userName email')
+    .sort({ createdAt: -1 });
 
-  if (!comments || comments.length === 0) {
-    throw new apiError(404, 'No comments found for this post.');
-  }
-
+  // Return empty array instead of throwing error
   return res
     .status(200)
-    .json(new apiResponse(200, 'comments fetched successfully', comments));
+    .json(
+      new apiResponse(200, 'Comments fetched successfully', comments || [])
+    );
 });
 
 export {

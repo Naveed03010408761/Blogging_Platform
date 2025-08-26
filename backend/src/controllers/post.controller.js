@@ -3,25 +3,6 @@ import apiError from '../ultils/apiError.js';
 import apiResponse from '../ultils/apiResponse.js';
 import asyncHandler from '../ultils/asyncHandler.js';
 
-// const createPost = asyncHandler(async (req, res) => {
-//   const { title, content } = req.body;
-
-//   if (!title || !content) {
-//     throw new apiError(400, "Title and content are required.");
-//   }
-
-//   const post = await Post.create({
-//     user: req.user._id,
-//     title,
-//     content,
-//     author: req.user.username,
-//   });
-
-//   res
-//     .status(201)
-//     .json(new apiResponse(201, "Post created successfully.", post));
-// });
-
 const createPost = asyncHandler(async (req, res) => {
   const { title, content } = req.body;
 
@@ -34,20 +15,20 @@ const createPost = asyncHandler(async (req, res) => {
   }
 
   const post = await Post.create({
-    user: req.user._id,
     title,
     content,
-    author: req.user.username,
+    author: req.user._id,
   });
 
   res
     .status(201)
     .json(new apiResponse(201, 'Post created successfully.', post));
 });
+
 const getAllPosts = asyncHandler(async (req, res) => {
-  const posts = await Post.find().populate('user', 'name email');
-  if (!posts) {
-    return res.status(404).json(new apiResponse(404, 'Post not found.'));
+  const posts = await Post.find().populate('author', ' email userName');
+  if (!posts || posts.length === 0) {
+    return res.status(404).json(new apiResponse(404, 'No posts found.'));
   }
   return res
     .status(200)
@@ -56,8 +37,8 @@ const getAllPosts = asyncHandler(async (req, res) => {
 
 const getPost = asyncHandler(async (req, res) => {
   const post = await Post.findById(req.params.id).populate(
-    'user',
-    'name email'
+    'author',
+    'email userName'
   );
 
   if (!post) {
@@ -79,7 +60,7 @@ const updatePost = asyncHandler(async (req, res) => {
   const post = await Post.findByIdAndUpdate(
     req.params.id,
     { title, content },
-    { new: true }
+    { new: true, runValidators: true }
   );
 
   if (!post) {
@@ -103,4 +84,31 @@ const deletePost = asyncHandler(async (req, res) => {
     .json(new apiResponse(200, 'Post deleted successfully.', post));
 });
 
-export { createPost, getAllPosts, getPost, updatePost, deletePost };
+const getPostsByUser = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new apiError(401, 'User not authenticated');
+  }
+
+  const posts = await Post.find({ author: req.user._id })
+    .populate('author', 'email userName')
+    .sort({ createdAt: -1 });
+
+  if (!posts || posts.length === 0) {
+    return res
+      .status(404)
+      .json(new apiResponse(404, 'No posts found for this user.'));
+  }
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, 'User posts retrieved successfully.', posts));
+});
+
+export {
+  createPost,
+  getAllPosts,
+  getPost,
+  updatePost,
+  deletePost,
+  getPostsByUser,
+};

@@ -1,19 +1,27 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const CreatePost = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    author: "",
+    title: '',
+    content: '',
+    author: '',
   });
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      alert('Please login first!');
+      navigate('/login');
+    }
+  }, [navigate]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -22,56 +30,42 @@ const CreatePost = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    // validation
     for (let key in formData) {
       if (!formData[key]) {
-        alert("All fields are required.");
-        return; // stop if validation fails
+        alert('All fields are required.');
+        setLoading(false);
+        return;
       }
     }
 
     try {
-      const response = await axios.post("/api/v1/posts", formData, {
-        withCredentials: true, // include cookies if auth required
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.post('/api/v1/posts', formData, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
-      console.log("Post Created:", response.data);
-      alert("Post created successfully!");
-      setFormData({ title: "", content: "", author: "" }); // reset form
+      alert('Post created successfully!');
+      setFormData({ title: '', content: '', author: '' });
+      navigate('/dashboard');
     } catch (error) {
-      console.error("Post submission failed:", error);
-      alert("Failed to create post.");
-    }
+      console.error('=== POST CREATION ERROR ===');
 
+      alert(
+        `Error ${error.response.status}: ${error.response.data?.message || 'Failed to create post'}`
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = async () => {
-      if (
-        !window.confirm(
-          "Are you sure you want to delete this post? This action cannot be undone.",
-        )
-      ) {
-        return;
-      }
-
-      try {
-        setLoading(true);
-        await axios.delete(`/api/v1/posts/${id}`, {
-          withCredentials: true,
-        });
-        alert("Post deleted successfully!");
-        navigate("/dashboard");
-      } catch (error) {
-        console.error("Delete failed:", error);
-        alert("Failed to delete post.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const handleCancel = () => {
-      navigate("/dashboard");
-    };
+  const handleCancel = () => {
+    navigate('/dashboard');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -99,6 +93,7 @@ const CreatePost = () => {
                 placeholder="Enter post title"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -119,6 +114,7 @@ const CreatePost = () => {
                 rows="6"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -139,24 +135,18 @@ const CreatePost = () => {
                 placeholder="Enter author name"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
                 required
+                disabled={loading}
               />
             </div>
 
-            {/* Button */}
-            <div>
+            {/* Buttons */}
+            <div className="space-y-3">
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Create Post
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
                 disabled={loading}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                {loading ? "Processing..." : "Delete Post"}
+                {loading ? 'Creating Post...' : 'Create Post'}
               </button>
 
               <button

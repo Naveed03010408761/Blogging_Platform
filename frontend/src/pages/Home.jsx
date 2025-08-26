@@ -1,20 +1,21 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/login");
-    } else {
-      navigate("/register");
-    }
+    // const token = localStorage.getItem("token");
+    // if (token) {
+    //   navigate("/login");
+    // } else {
+    //   navigate("/register");
+    // }
+
+    navigate('/register');
   };
   return (
     <div className="bg-gray-100 min-h-screen">
-
       <section className="bg-blue-600 text-white py-20 text-center">
         <h1 className="text-4xl font-bold mb-4">Welcome to Our Website</h1>
         <p className="text-lg mb-6">
@@ -47,7 +48,6 @@ const Home = () => {
           <p>Simple and clean interface for better experience.</p>
         </div>
       </section>
-      
     </div>
   );
 };

@@ -1,16 +1,17 @@
-import apiError from "../ultils/apiError.js";
-import apiResponse from "../ultils/apiResponse.js";
-import asyncHandler from "../ultils/asyncHandler.js";
-import User from "../models/user.models.js";
+import apiError from '../ultils/apiError.js';
+import apiResponse from '../ultils/apiResponse.js';
+import asyncHandler from '../ultils/asyncHandler.js';
+import User from '../models/user.models.js';
 import {
-  generateAccessToken, generateRefreshToken
-} from "../ultils/generateTokens.utils.js"
+  generateAccessToken,
+  generateRefreshToken,
+} from '../ultils/generateTokens.utils.js';
 
 const registerUser = asyncHandler(async (req, res, next) => {
   const { userName, email, password, avatar } = req.body;
 
   if (!userName || !email || !password) {
-    throw new apiError(400, "All fields are required.");
+    throw new apiError(400, 'All fields are required.');
   }
 
   const existedUser = await User.findOne({
@@ -18,7 +19,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
   });
 
   if (existedUser) {
-    throw new apiError(400, "User already exists.");
+    throw new apiError(400, 'User already exists.');
   }
 
   const newUser = await User.create({
@@ -29,7 +30,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
   });
 
   if (!newUser) {
-    throw new apiError(400, "User creation failed.");
+    throw new apiError(400, 'User creation failed.');
   }
 
   const accessToken = generateAccessToken(newUser._id);
@@ -38,25 +39,25 @@ const registerUser = asyncHandler(async (req, res, next) => {
   const options = {
     httpOnly: true,
     secure: true,
-    sameSite: "strict",
+    sameSite: 'strict',
   };
 
   return res
     .status(201)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(new apiResponse(201, "User created successfully.", newUser));
+    .cookie('accessToken', accessToken, options)
+    .cookie('refreshToken', refreshToken, options)
+    .json(new apiResponse(201, 'User created successfully.', newUser));
 });
 
 const loginUser = asyncHandler(async (req, res, next) => {
   const { userName, email, password } = req.body;
 
   if (!email && !userName) {
-    throw new apiError(400, "Email or Username is required.");
+    throw new apiError(400, 'Email or Username is required.');
   }
 
   if (!password) {
-    throw new apiError(400, "Password is required.");
+    throw new apiError(400, 'Password is required.');
   }
 
   const user = await User.findOne({
@@ -64,12 +65,12 @@ const loginUser = asyncHandler(async (req, res, next) => {
   });
 
   if (!user) {
-    throw new apiError(404, "User not found.");
+    throw new apiError(404, 'User not found.');
   }
 
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
-    throw new apiError(401, "Invalid credentials.");
+    throw new apiError(401, 'Invalid credentials.');
   }
 
   const accessToken = generateAccessToken(user._id);
@@ -82,60 +83,33 @@ const loginUser = asyncHandler(async (req, res, next) => {
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie('accessToken', accessToken, options)
+    .cookie('refreshToken', refreshToken, options)
     .json(
-      new apiResponse(200, "User logged in successfully", {
+      new apiResponse(200, 'User logged in successfully', {
         user,
         accessToken,
         refreshToken,
-      }),
+      })
     );
 });
 
-// const logoutUser = asyncHandler(async (req, res, next) => {
-//   const user = await User.findByIdAndUpdate(
-//     req.user._id,
-//     { refreshToken: null },
-//     { new: true },
-//   );
-
-//   if (!user) {
-//     throw new apiError(404, "User not found.");
-//   }
-
-//   const options = {
-//     httpOnly: true,
-//     secure: true,
-//   };
-
-//   res
-//     .status(200)
-//     .clearCookie("accessToken", options)
-//     .clearCookie("refreshToken", options)
-//     .json(new apiResponse(200, "User logged out successfully."));
-// });
-
 const logoutUser = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
   await User.findByIdAndUpdate(
     req.user._id,
     { refreshToken: null },
     { new: true }
   );
 
-  // Clear cookies
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
 
-  res.status(200).json({ message: "Logged out successfully" });
+  res.clearCookie('accessToken', options);
+  res.clearCookie('refreshToken', options);
+
+  res.status(200).json({ message: 'Logged out successfully' });
 });
 
-
 export { registerUser, loginUser, logoutUser };
-
-
-

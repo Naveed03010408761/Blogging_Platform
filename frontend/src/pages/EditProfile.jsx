@@ -1,50 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 const EditProfile = () => {
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     userName: '',
     location: '',
     bio: '',
     website: '',
     twitter: '',
+    facebook: '',
     github: '',
-    linkedin: '',
   });
 
-  // Fetch profile when component loads
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get('/api/v1/users/profile', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-
-        // Flatten socialLinks if backend sends nested object
-        const user = res.data.data || res.data;
-        setFormData({
-          userName: user.userName || '',
-          location: user.location || '',
-          bio: user.bio || '',
-          website: user.website || '',
-          twitter: user.socialLinks?.twitter || '',
-          github: user.socialLinks?.github || '',
-          linkedin: user.socialLinks?.linkedin || '',
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    };
+    try {
+      const fetchProfile = async () => {
+        const res = await axios.get('/api/v1/users/profile');
+        setFormData(res.data);
+      };
+    } catch (error) {
+      console.error(error);
+    }
 
     fetchProfile();
   }, []);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -53,38 +34,17 @@ const EditProfile = () => {
     }));
   };
 
-  // Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.patch(
-        '/api/v1/users/profile',
-        {
-          userName: formData.userName,
-          location: formData.location,
-          bio: formData.bio,
-          website: formData.website,
-          socialLinks: {
-            twitter: formData.twitter,
-            github: formData.github,
-            linkedin: formData.linkedin,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-
-      alert('Profile updated successfully!');
+      axios.patch('/api/v1/users/profile', formData);
+      alert('Profile editted successfully.');
       navigate('/profile');
     } catch (error) {
       console.error(error);
       alert('Error updating profile.');
     }
   };
-
   return (
     <div className="max-w-lg mx-auto p-6 bg-white shadow-md rounded-xl">
       <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
@@ -92,8 +52,8 @@ const EditProfile = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          name="userName"
-          value={formData.userName}
+          name="username"
+          value={formData.username}
           onChange={handleChange}
           placeholder="Username"
           className="w-full p-2 border rounded-lg"

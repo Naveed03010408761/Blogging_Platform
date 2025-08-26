@@ -1,27 +1,24 @@
-import express from "express";
+import express from 'express';
 import {
   createPost,
   getAllPosts,
   getPost,
   updatePost,
   deletePost,
-} from "../controllers/post.controller.js";
+  getPostsByUser,
+} from '../controllers/post.controller.js';
+import { protect } from '../middlewares/auth.middleware.js';
 
 const postRouter = express.Router();
 
-// Create a post
-postRouter.post("/", createPost);
+// Public routes
+postRouter.get('/', getAllPosts);
 
-// Get all posts
-postRouter.get("/", getAllPosts);
+postRouter.get('/my-posts', protect, getPostsByUser);
+postRouter.get('/:id', getPost);
 
-// Get a single post by id
-postRouter.get("/:id", getPost);
-
-// Update a post by id
-postRouter.put("/:id", updatePost);
-
-// Delete a post by id
-postRouter.delete("/:id", deletePost);
+postRouter.post('/', protect, createPost);
+postRouter.put('/:id', protect, updatePost);
+postRouter.delete('/:id', protect, deletePost);
 
 export default postRouter;
