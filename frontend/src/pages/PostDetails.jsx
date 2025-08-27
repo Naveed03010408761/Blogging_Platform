@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import CreateComment from '../pages/CreateComment';
 import CommentsList from '../pages/CommentsList';
+import LikeButton from '../components/LikeButton';
 
 export default function PostDetails() {
   const { id } = useParams();
@@ -57,6 +58,7 @@ export default function PostDetails() {
         <p className="text-lg text-gray-800 leading-relaxed whitespace-pre-line">
           {post.content}
         </p>
+        <LikeButton postId={post._id} initialCount={post.likes || 0} />
       </div>
 
       {/* 3. COMMENTS SECTION HEADER */}

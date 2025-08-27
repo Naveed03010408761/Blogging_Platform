@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import LikeButton from '../components/LikeButton';
 
 export default function UserPosts() {
   const [posts, setPosts] = useState([]);
@@ -176,7 +177,7 @@ export default function UserPosts() {
   };
 
   const handleViewPost = (postId) => {
-    navigate(`/postDetails/${postId}`);
+    navigate(`/posts/${postId}`);
   };
 
   useEffect(() => {
@@ -280,7 +281,7 @@ export default function UserPosts() {
                 <>
                   <h2 className="text-xl font-semibold mb-2">
                     <Link
-                      to={`/posts/${post._id}`}
+                      to={`/posts/${post._id}`} // ✅ Matches your route
                       className="text-blue-600 hover:text-blue-800 hover:underline"
                     >
                       {post.title}
@@ -297,6 +298,10 @@ export default function UserPosts() {
                     <span>
                       Created: {new Date(post.createdAt).toLocaleDateString()}
                     </span>
+                    <LikeButton
+                      postId={post._id}
+                      initialCount={post.likes || 0}
+                    />
                     <div className="space-x-2">
                       <button
                         onClick={() => handleEditClick(post)}
