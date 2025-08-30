@@ -6,65 +6,72 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
+
+        if (!token) {
+          console.log('No token found, redirecting to login');
+          navigate('/login');
+          return;
+        }
         const res = await axios.get('/api/v1/users/profile', {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
-          withCredentials: true,
         });
+        console.log(res);
+
         setProfile(res.data.data);
+        setError('');
       } catch (err) {
-        console.error('Error fetching profile:', err);
-        alert('Failed to load profile');
+        console.error('Error details:', err.response?.data || err.message);
+        if (err.response?.status === 401) {
+          // Token is invalid or expired
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('userData');
+          navigate('/login');
+        } else {
+          setError('Failed to load profile');
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   const handleDelete = async () => {
     if (
       !window.confirm(
         'Are you sure you want to delete your profile? This action cannot be undone. All your posts and data will be lost.'
       )
-    ) {
+    )
       return;
-    }
 
     try {
       setDeleteLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       await axios.delete('/api/v1/users/profile', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Clear local storage and redirect
       localStorage.removeItem('token');
       alert('Profile deleted successfully.');
-      navigate('/');
-      window.location.reload();
+      window.location.href = '/';
     } catch (error) {
       console.error('Delete error:', error);
       alert('Delete failed. Please try again.');
     } finally {
       setDeleteLoading(false);
     }
-  };
-
-  const handleEdit = () => {
-    navigate('/profile/edit');
   };
 
   if (loading) {
@@ -75,12 +82,18 @@ const ProfilePage = () => {
     );
   }
 
-  if (!profile) {
+  if (error || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-center text-red-500 text-lg">
-          Could not load profile.
+          {error || 'Could not load profile'}
         </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="ml-4 px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -192,7 +205,7 @@ const ProfilePage = () => {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 mt-8">
             <button
-              onClick={handleEdit}
+              onClick={() => navigate('/edit-profile')}
               className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition-colors font-semibold"
             >
               Edit Profile
@@ -206,20 +219,6 @@ const ProfilePage = () => {
               {deleteLoading ? 'Deleting...' : 'Delete Account'}
             </button>
           </div>
-
-          {/* Empty State Messages */}
-          {!profile.bio &&
-            !profile.website &&
-            !profile.socialLinks?.twitter &&
-            !profile.socialLinks?.github &&
-            !profile.socialLinks?.linkedin && (
-              <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <p className="text-yellow-800 text-center">
-                  Your profile is looking empty! Add a bio, website, or social
-                  links to make it more complete.
-                </p>
-              </div>
-            )}
         </div>
       </div>
     </div>
